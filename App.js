@@ -12,6 +12,11 @@ import Status from './components/Status'
 import MessageList from './components/MessageList'
 import Toolbar from './components/Toolbar'
 import ImageGrid from './components/ImageGrid'
+import KeyboardState from './components/KeyboardState'
+import MeasureLayout from './components/MeasureLayout'
+import MessagingContainer, {
+  INPUT_METHOD
+} from './components/MessagingContainer'
 import {
   createTextMessage,
   createImageMessage,
@@ -23,6 +28,7 @@ export default class App extends React.Component {
     messages: [],
     fullscreenImageId: null,
     isInputFocused: false,
+    inputMethod: INPUT_METHOD.NONE,
   }
 
   UNSAFE_componentWillMount() {
@@ -73,8 +79,15 @@ export default class App extends React.Component {
     )
   }
 
+  handleChangeInputMethod = (inputMethod) => {
+    this.setState({ inputMethod })
+  }
+
   handlePressToolbarCamera = () => {
-    // ... 
+    this.setState({
+      isInputFocused: false,
+      inputMethod: INPUT_METHOD.CUSTOM,
+    })
   }
 
   handlePressToolbarLocation = () => {
@@ -192,12 +205,28 @@ export default class App extends React.Component {
   }
 
   render() {
+    const { inputMethod } = this.state
+
     return (
       <View style={styles.container}>
         <Status />
-        {this.renderMessageList()}
-        {this.renderToolbar()}
-        {this.renderInputMethodEditor()}
+        <MeasureLayout>
+          {layout => (
+            <KeyboardState layout={layout}>
+              {keyboardInfo => (
+                <MessagingContainer
+                  {...keyboardInfo}
+                  inputMethod={inputMethod}
+                  onChangeInputMethod={this.handleChangeInputMethod}
+                  renderInputMethodEditor={this.renderInputMethodEditor}
+                >
+                  {this.renderMessageList()}
+                  {this.renderToolbar()}
+                </MessagingContainer>
+              )}
+            </KeyboardState>
+          )}
+        </MeasureLayout>
         {this.renderFullscreenImage()}
       </View>
     )
